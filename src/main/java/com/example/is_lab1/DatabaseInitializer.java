@@ -6,6 +6,7 @@ import com.example.is_lab1.PostRepository;
 import com.example.is_lab1.UserRepository;
 import com.example.is_lab1.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.ApplicationRunner;
 import org.springframework.stereotype.Component;
@@ -22,21 +23,18 @@ public class DatabaseInitializer implements ApplicationRunner {
     @Autowired
     private UserService userService;
 
+    @Value("${security.passwords.user}")
+    private String userPass;
+
     @Override
     public void run(ApplicationArguments args) {
         // Создаём тестового пользователя, только если БД пуста
         if (userRepository.count() == 0) {
-            User admin = new User();
-            admin.setUsername("admin");
-            admin.setPassword("secure123"); // UserService захэширует его
-            userService.save(admin);
-
             User user = new User();
             user.setUsername("user");
-            user.setPasswordHash("userPass456");
+            user.setPassword(userPass);
             userService.save(user);
-
-            System.out.println("Intialized 2 users: admin, user");
+            System.out.println("Intialized 1 user: user");
         }
 
         if (postRepository.count() == 0) {

@@ -14,3 +14,7 @@ spring:
 jwt:
   secret: mySecretKeyForJWTThatIsLongEnoughToBeSecure1234567890!
   expiration: 86400000 # 24 hours in ms
+
+security:
+  passwords:
+    user: "${USER_PASSWORD:security123}"
