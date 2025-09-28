@@ -18,17 +18,19 @@ public class DataController {
 
     // GET /api/data — защищённый эндпоинт
     @GetMapping("/data")
-    public List<Post> getData() {
-        return postRepository.findAll();
+    public List<PostDTO> getData() {
+        return postRepository.findAll().stream().map(post -> new PostDTO(post.getId(), post.getTitle(), post.getContent())).toList();
     }
 
     // POST /api/posts — создание поста (тоже защищено)
     @PostMapping("/post")
-    public Post createPost(@RequestBody Post post) {
+    public PostDTO createPost(@RequestBody PostDTO postData) {
         // Защита от XSS: экранирование контента
+        Post post = new Post();
         post.setTitle(escapeHtml4(post.getTitle()));
         post.setContent(escapeHtml4(post.getContent()));
-        return postRepository.save(post);
+        postRepository.save(post);
+        return new PostDTO(post.getId(), post.getTitle(), post.getContent());
     }
 
 }
