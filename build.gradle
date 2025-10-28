@@ -1,3 +1,12 @@
+buildscript {
+	repositories {
+		mavenCentral()
+	}
+	dependencies {
+		classpath 'org.owasp:dependency-check-gradle:12.1.8'
+	}
+}
+
 plugins {
 	id 'java'
 	id 'org.springframework.boot' version '3.5.6'
@@ -32,9 +41,39 @@ dependencies {
 	testImplementation 'org.springframework.security:spring-security-test'
 	implementation 'org.apache.commons:commons-text:1.14.0'
 	spotbugsPlugins 'com.h3xstream.findsecbugs:findsecbugs-plugin:1.14.0'
-	compileOnly 'com.github.spotbugs:spotbugs-annotations:4.8.3'
+	compileOnly 'com.github.spotbugs:spotbugs-annotations:4.8.3'        // org.owasp.dependencycheck needs at least this version of jackson. Other plugins pull in older versions..
+	add("implementation", "com.fasterxml.jackson:jackson-bom:2.16.1")
+
+	// org.owasp.dependencycheck needs these versions. Other plugins pull in older versions..
+	add("implementation", "org.apache.commons:commons-lang3:3.18.0")
+	add("implementation", "org.apache.commons:commons-text:1.11.0")
 }
 
-tasks.named('test') {
-	useJUnitPlatform()
+tasks.withType(com.github.spotbugs.snom.SpotBugsTask).configureEach {
+	effort = "max"
+	reportLevel = "medium"
+	extraArgs = ["-longBugCodes"]
+	reports {
+		text.enabled = true
+		xml.enabled = false
+	}
 }
+
+task spotbugsReport {
+	doLast {
+		def reportFile = file("build/reports/spotbugs/main.txt") // Note: .txt, not .text!
+		if (reportFile.exists()) {
+			println("SpotBugs report: ")
+			reportFile.readLines().each { line ->
+				println line
+			}
+		} else {
+			println "SpotBugs report not found at: ${reportFile.absolutePath}"
+		}
+	}
+}
+
+tasks.named("spotbugsMain") {
+	finalizedBy(spotbugsReport)
+}
+apply plugin: 'org.owasp.dependencycheck'
